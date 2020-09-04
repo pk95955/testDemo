@@ -1,1 +1,151 @@
 Fourth bText
+
+using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
+using System.ComponentModel; 
+namespace System
+{
+    /// <summary>
+    /// Extension methods Example of Real Time 
+    /// </summary>
+    public static class MyExtensions
+    {        
+        public static String ToDMYString(this DateTime Date)
+        {
+            return Date.ToString("dd MMM yyyy");
+        }
+        public static string AsDMYMHString(this DateTime date)
+        {
+            if (date == Convert.ToDateTime("1 Jan 1900"))
+            {
+                return "";
+            }
+            else
+            {
+                return date.ToString("dd MMM yyyy HH:mm tt");
+            }
+        }
+        public static String AsDMYString(this object o)
+        {
+            CultureInfo cultureUK = new CultureInfo("en-GB");
+            DateTime dt = DateTime.Now;
+            return Convert.ToDateTime(o, cultureUK).ToDMYString();
+        }
+        public static DateTime ToDate(this String Date)
+        {
+            CultureInfo cultureUK = new CultureInfo("en-GB");
+            return Convert.ToDateTime(Date, cultureUK);
+        }       
+        public static object IsDbNull(this object o, object defaultValue)
+        {
+            if (o == DBNull.Value) return defaultValue; else return o;
+        }
+        public static object IsNull(this object objData, object defaultValue)
+        {
+            if (objData == null) return defaultValue; else return objData;
+        }
+        public static string IsNull(this string data, object defaultValue)
+        {
+            if (data == null ) return defaultValue.ToString(); else return data;
+        }       
+        public static short AsInt16(this object objData)
+        {
+            return Convert.ToInt16("0" + objData);
+        }        
+        public static int AsInt32(this object objData)
+        {
+            return Convert.ToInt32("0" + objData);
+        }
+        public static Single AsSingle(this object objData)
+        {
+            return Convert.ToSingle("0" + objData.ToString());
+        }
+        public static double AsDouble(this object objData)
+        {
+            short value = 0;
+            short.TryParse(objData.ToString(), out value);
+            return Convert.ToDouble("0" + value);
+        } 
+        public static Int64 AsInt64(this object objData)
+        {
+            return Convert.ToInt64("0" + objData);
+        } 
+        public static bool AsBoolean(this object o)
+        {
+            return Convert.ToBoolean(o);
+        }
+         
+        public static byte AsByte(this object o)
+        {
+            return Convert.ToByte(o);
+        }  
+        public static DateTime? AsDateTime(this object o)
+        {
+            if (o == null) return null;
+            return Convert.ToDateTime(o);
+        }
+        public static string ConvertHexToString(this string HexValue)
+        {
+            string StrValue = "";
+            while (HexValue.Length > 0)
+            {
+                StrValue += System.Convert.ToChar(System.Convert.ToUInt32(HexValue.Substring(0, 2), 16)).ToString();
+                HexValue = HexValue.Substring(2, HexValue.Length - 2);
+            }
+            return StrValue;
+        }
+        public static List<T> ConvetToList<T>(this DataTable tbl)
+        {
+            List<T> data = new List<T>();
+            foreach (DataRow row in tbl.Rows)
+            {
+                T item = GetItem<T>(row);
+                data.Add(item);
+            }
+            return data;
+        }
+        private static T GetItem<T>(DataRow dr)
+        {
+            Type temp = typeof(T);
+            T obj = Activator.CreateInstance<T>();
+            foreach (DataColumn column in dr.Table.Columns)
+            {
+                foreach (System.Reflection.PropertyInfo pro in temp.GetProperties())
+                {
+                    if (pro.Name == column.ColumnName && DBNull.Value != dr[column.ColumnName])
+                        pro.SetValue(obj, Convert.ChangeType(dr[column.ColumnName], pro.PropertyType), null);
+                    else
+                        continue;
+                }
+            }
+            return obj;
+        }
+
+        public static DataTable ConvertToDataTable<T>(this List<T> iList)
+        {
+            DataTable dt = new DataTable();
+            PropertyDescriptorCollection propertyDescriptorCollection = TypeDescriptor.GetProperties(typeof(T));
+            foreach (PropertyDescriptor field in propertyDescriptorCollection)
+            {
+                Type type = field.PropertyType;
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    type = Nullable.GetUnderlyingType(type);
+
+                dt.Columns.Add(field.Name, type);
+            }
+            object[] values = new object[propertyDescriptorCollection.Count];
+            foreach (T iListItem in iList)
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    values[i] = propertyDescriptorCollection[i].GetValue(iListItem);
+                }
+                dt.Rows.Add(values);
+            }
+
+
+            return dt;
+        }
+    }
+}
