@@ -1,2 +1,117 @@
 First Text File Example
 Modified 1
+
+
+using System;
+namespace AbstractionDemo
+{
+    /// <summary>
+    /// This is client class where client is calling method for  salary processing of different type of employees
+    /// </summary>
+    public class ClitenClass
+    {
+        /// <summary>
+        /// Client Code 
+        /// </summary>
+        public static void Main()
+        {
+            AbsCalcSalary CalcSal = new CalcSalary();
+            CalcSal.GetCurrentProcessMonth();
+            CalcSal.GetTotalNoOfDaysInMonth();
+            CalcSal.ConsolidatedEmployeeCalcSalary();
+            CalcSal.PermanentEmployeeCalcSalary();
+            Console.ReadLine();
+        }
+    }
+    /// <summary>
+    /// Abstract Class algorithms of Salary Calculation of all type of employees
+    /// Resuable entities are CurrentProcessMonth , TotalDaysInMonth , CutOffDays with all derived classes
+    /// </summary>
+    public abstract class AbsCalcSalary  
+    {
+        public DateTime CurrentProcessMonth;
+        public int TotalDaysInMonth;
+        public short CutOffDays;
+        public void GetCurrentProcessMonth()
+        {
+            CurrentProcessMonth =Convert.ToDateTime("1 Feb 2020"); 
+            // in Real Project this data will come from databases where data stored
+        }
+        public void GetTotalNoOfDaysInMonth()
+        {
+            TotalDaysInMonth = DateTime.DaysInMonth(CurrentProcessMonth.Year , CurrentProcessMonth.Month);            
+        }
+        /// <summary>
+        /// cut of days is a day for till date we consideder actual attendance 
+        /// after cut of days we will assume everyone present 
+        /// actual calculation of remaining days will be next month and  will go for previous adjustment
+        /// </summary>
+        public void GetCutoffDate()
+        {
+            CutOffDays = 24; //in Real Project this data will come from databases where  data stored
+        }      
+        public abstract void PermanentEmployeeCalcSalary();
+        public abstract void DailyWagesEmployeeCalcSalary();
+        public abstract void ConsolidatedEmployeeCalcSalary();
+    }
+    /// <summary>
+    ///  // Abstract Class For algorithms of Salary Calculation
+    /// </summary>
+    public class CalcSalary : AbsCalcSalary
+    {
+        public override void PermanentEmployeeCalcSalary()
+        {
+            // actual working days of an employee
+            // calculate one day salary 
+            // calculaet total salry           
+            long EmpID = 100001;  // These empID all information came from data base employee wise
+            decimal ActualAbsentDays = GetActualAbsentDays(EmpID);   // These all information came from data base employee wise         
+            decimal BasicPay = 50000;   // These all information came from data base employee wise
+            decimal DA = 17;//assume DA rate is 17 Percentage 
+            decimal PersonnelPay = 10000; // suppose emploee got 10000 as personnel Pay
+            decimal ProfessionNalTax = 208; // furture Professional tax calculation is a lot formaula coverage
+            decimal EffectiveBasicPay = BasicPay + (BasicPay * DA) / 100 + PersonnelPay - ProfessionNalTax;
+            decimal OneDaySalary = EffectiveBasicPay / TotalDaysInMonth;
+            decimal TotalNoOfWorkingDays = TotalDaysInMonth - ActualAbsentDays;
+            decimal TotalSalry =Math.Round(TotalNoOfWorkingDays * OneDaySalary, 0 );
+            Console.WriteLine($"Salary calculated successfully");
+            Console.WriteLine($"Employee id is:  {EmpID} : and salary = {TotalSalry}"); 
+        }
+        public override void ConsolidatedEmployeeCalcSalary()
+        {
+            // In case of cosolidated employees There is only basic no DA , Personnel Pay  nothing else.
+            long EmpID = 100002;
+            decimal ActualAbsentDays = GetActualAbsentDays(EmpID);
+            decimal BasicPay = 30000;
+            decimal ProfessionNalTax = 208; // furture Professional tax calculation is a lot formaula coverage , this head also applicable for conso
+            decimal EffectiveBasicPay = BasicPay - ProfessionNalTax;
+            decimal OneDaySalary = EffectiveBasicPay / TotalDaysInMonth;
+            decimal TotalNoOfWorkingDays = TotalDaysInMonth - ActualAbsentDays;
+            decimal TotalSalry = Math.Round(TotalNoOfWorkingDays * OneDaySalary, 0);
+            Console.WriteLine($"Salary calculated successfully");
+            Console.WriteLine($"Employee id is:  {EmpID} : and Salary = {TotalSalry}");
+        }
+        public override void DailyWagesEmployeeCalcSalary()
+        {
+            // In case of daily wages employees there is only one day salary ie daily wages.
+            long EmpID = 100003;
+            decimal ActualAbsentDays = GetActualAbsentDays(EmpID);
+            decimal wages = 400;
+            decimal TotalNoOfWorkingDays = TotalDaysInMonth - ActualAbsentDays;
+            decimal TotalSalry = Math.Round(TotalNoOfWorkingDays * wages, 0);
+            Console.WriteLine($"Salary calculated successfully");
+            Console.WriteLine($"Employee id is:  {EmpID} : and Salary = {TotalSalry}");
+        }
+        /// <summary>
+        /// get employee Wise absent days
+        /// </summary>
+        /// <param name="EmpID"></param>
+        /// <returns></returns>
+        private decimal GetActualAbsentDays(long EmpID)
+        {
+            // assume 3 days a employee absent for current salary month
+            return 3; // again data will come from data base employee wise
+        }
+    } 
+
+}
